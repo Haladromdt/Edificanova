@@ -1,0 +1,13 @@
+{
+  "costo_base_m2": 280000,
+  "costo_flete_km": 1500,
+  "sistema_constructivo": {
+    "E.E": 1.0,
+    "W.F": 1.15,
+    "S.F": 1.25
+  },
+  "modalidad_entrega": {
+    "OBRA GRIS": 1.0,
+    "LLAVE EN MANO": 1.40
+  }
+}
