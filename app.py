@@ -2,10 +2,21 @@ import streamlit as st
 from fpdf import FPDF
 import datetime
 
-from core.motor_calculo import calcular_presupuesto
+from core.motor_calculo import calcular_presupuesto, cargar_configuracion
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(page_title="Cotizador EdificaNova", page_icon="🏗️", layout="wide")
+
+# La información comercial y de costos se administra desde un único CSV editable.
+try:
+    CONFIG = cargar_configuracion()
+except (OSError, ValueError) as e:
+    st.error(f"No se pudo cargar la configuración comercial: {e}")
+    st.stop()
+
+def opciones(categoria):
+    return {k: v.get("nombre", k) for k, v in CONFIG[categoria].items()}
+
 
 
 def generar_pdf(cliente, m2, tipologia, sistema, entrega, revestimiento, pago,
@@ -68,24 +79,29 @@ col_cliente, col_tecnica = st.columns([1, 2])
 with col_cliente:
     st.header("👤 Datos del Cliente")
     cliente = st.text_input("Nombre y Apellido", placeholder="Ej: Juan Pérez")
-    ubicacion = st.selectbox("Ubicación de la Obra",
-                              ['CÓRDOBA CAPITAL', 'LA PLATA', 'SANTIAGO DEL ESTERO',
-                               'ALTA GRACIA', 'CARLOS PAZ', 'MENDIOLAZA', 'BUENOS AIRES'])
-    distancia = st.number_input("Distancia Logística Exacta (km)", min_value=5, value=15, step=5,
-                                 help="Distancia desde la fábrica en Córdoba hasta el terreno.")
-    pago = st.selectbox("Forma de Pago de Interés", ['CONTADO', 'PLAN 36-60', 'FINANCIACION PROPIA', 'NO SABE'])
+    ubicaciones = opciones("ubicacion")
+    ubicacion = st.selectbox("Ubicación de la Obra", list(ubicaciones), format_func=lambda x: ubicaciones[x])
+    distancia_default = int(CONFIG["ubicacion"][ubicacion].get("valor_extra", 0))
+    distancia = st.number_input("Distancia Logística Exacta (km)", min_value=0, value=distancia_default, step=5,
+                                 help="Distancia editable. El valor inicial se obtiene del CSV según la ubicación.")
+    pagos = opciones("forma_pago")
+    pago = st.selectbox("Forma de Pago de Interés", list(pagos), format_func=lambda x: pagos[x])
 
 with col_tecnica:
     st.header("📐 Especificaciones del Proyecto")
     row1_col1, row1_col2 = st.columns(2)
     with row1_col1:
         m2 = st.number_input("Superficie de Referencia (m²)", min_value=20, value=55, step=5)
-        tipologia = st.selectbox("Tipología", ['AMERICANA', 'MINIMALISTA', 'CABAÑA'])
+        tipologias = opciones("tipologia")
+        tipologia = st.selectbox("Tipología", list(tipologias), format_func=lambda x: tipologias[x])
     with row1_col2:
-        sistema = st.selectbox("Sistema Constructivo", ['E.E', 'W.F', 'S.F'],
-                                help="E.E (Económico), W.F (Wood Frame), S.F (Steel Frame)")
-        entrega = st.selectbox("Modalidad de Entrega", ['OBRA GRIS', 'LLAVE EN MANO'])
-        revestimiento = st.selectbox("Revestimiento", ['LADRILLO', 'PIEDRA NATURAL', 'MADERA'])
+        sistemas = opciones("sistema_constructivo")
+        sistema = st.selectbox("Sistema Constructivo", list(sistemas), format_func=lambda x: sistemas[x],
+                                help="Los valores se administran desde configuracion_comercial.csv")
+        entregas = opciones("modalidad_entrega")
+        entrega = st.selectbox("Modalidad de Entrega", list(entregas), format_func=lambda x: entregas[x])
+        revestimientos = opciones("revestimiento")
+        revestimiento = st.selectbox("Revestimiento", list(revestimientos), format_func=lambda x: revestimientos[x])
 
 st.markdown("---")
 
@@ -117,7 +133,7 @@ if st.button("Generar Cotización Formal", type="primary", use_container_width=T
             st.subheader("📄 Documentación Comercial")
 
             pdf_bytes = generar_pdf(
-                cliente, m2, tipologia, sistema, entrega, revestimiento, pago,
+                cliente, m2, tipologia, sistema, entrega, revestimiento, pagos[pago],
                 costo_construccion, distancia, recargo_logistica, presupuesto_total
             )
 

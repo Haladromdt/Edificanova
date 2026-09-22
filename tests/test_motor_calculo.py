@@ -80,3 +80,26 @@ def test_valores_limite_m2_muy_alto():
                                       multiplicadores=MULTIPLICADORES_TEST)
     assert resultado["total"] > 0
     assert resultado["costo_construccion"] > resultado["recargo_logistica"]
+
+
+def test_carga_configuracion_desde_csv():
+    from core.motor_calculo import cargar_configuracion
+    config = cargar_configuracion()
+    assert config["costos"]["costo_base_m2"] == 280000
+    assert config["costos"]["costo_flete_km"] == 1500
+    assert config["sistema_constructivo"]["W.F"]["valor"] == 1.15
+    assert config["modalidad_entrega"]["LLAVE EN MANO"]["valor"] == 1.40
+    assert "CÓRDOBA CAPITAL" == config["ubicacion"]["CORDOBA_CAPITAL"]["nombre"]
+    assert config["ubicacion"]["CORDOBA_CAPITAL"]["valor_extra"] == 15
+    assert "PLAN 36-60" == config["forma_pago"]["PLAN_36_60"]["nombre"]
+
+
+def test_cambiar_costo_en_csv_cambia_el_resultado(tmp_path):
+    from core.motor_calculo import cargar_multiplicadores
+    csv_original = """categoria,codigo,nombre,valor,valor_extra,activo,descripcion\ncosto,costo_base_m2,Costo base,300000,,1,Prueba\ncosto,costo_flete_km,Flete,2000,,1,Prueba\nsistema_constructivo,E.E,Económico,1.0,,1,Prueba\nmodalidad_entrega,OBRA GRIS,Obra Gris,1.0,,1,Prueba\n"""
+    path = tmp_path / "config.csv"
+    path.write_text(csv_original, encoding="utf-8")
+    config = cargar_multiplicadores(str(path))
+    resultado = calcular_presupuesto(10, "E.E", "OBRA GRIS", 5, config)
+    assert resultado["costo_construccion"] == 3000000
+    assert resultado["recargo_logistica"] == 10000

@@ -1,44 +1,84 @@
 """
 Motor de cálculo de EdificaNova.
 
-Funciones puras, sin dependencia de Streamlit, para que puedan
-testearse de forma aislada (ver tests/test_motor_calculo.py).
-
-Los valores de costos y multiplicadores NO están hardcodeados acá:
-se leen de data/multiplicadores.json (RD01 - tabla editable).
+Los costos, multiplicadores y opciones comerciales se leen desde
+CSV (data/configuracion_comercial.csv). La lógica permanece separada
+de Streamlit para facilitar testing y mantenimiento.
 """
-import json
+import csv
 import os
 
-_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "multiplicadores.json")
+_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "configuracion_comercial.csv")
+
+
+def cargar_configuracion(path: str = None) -> dict:
+    """Carga costos, multiplicadores y opciones comerciales desde un CSV."""
+    path = path or _DATA_PATH
+    config = {
+        "costos": {},
+        "sistema_constructivo": {},
+        "modalidad_entrega": {},
+        "ubicacion": {},
+        "forma_pago": {},
+        "tipologia": {},
+        "revestimiento": {},
+    }
+
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        reader = csv.DictReader(f)
+        required = {"categoria", "codigo", "nombre", "valor", "valor_extra", "activo", "descripcion"}
+        if not reader.fieldnames or not required.issubset(set(reader.fieldnames)):
+            raise ValueError("El CSV debe contener las columnas: categoria,codigo,nombre,valor,valor_extra,activo,descripcion")
+
+        for row in reader:
+            if str(row["activo"]).strip().lower() not in {"1", "true", "si", "sí", "yes", "x"}:
+                continue
+
+            categoria = row["categoria"].strip()
+            codigo = row["codigo"].strip()
+            nombre = row["nombre"].strip()
+            valor = row["valor"].strip()
+            valor_extra = row["valor_extra"].strip()
+            descripcion = row["descripcion"].strip()
+
+            if categoria == "costo":
+                if not valor:
+                    raise ValueError(f"Falta valor para el costo '{codigo}'.")
+                config["costos"][codigo] = float(valor)
+            elif categoria in config and categoria != "costos":
+                item = {
+                    "nombre": nombre or codigo,
+                    "descripcion": descripcion,
+                }
+                if valor:
+                    item["valor"] = float(valor)
+                if valor_extra:
+                    item["valor_extra"] = float(valor_extra)
+                config[categoria][codigo] = item
+            else:
+                raise ValueError(f"Categoría desconocida en CSV: {categoria}")
+
+    return config
 
 
 def cargar_multiplicadores(path: str = None) -> dict:
-    """Carga la tabla de costos y multiplicadores desde el JSON editable."""
-    path = path or _DATA_PATH
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
+    """Compatibilidad con el nombre utilizado en versiones anteriores."""
+    config = cargar_configuracion(path)
+    return {
+        "costo_base_m2": config["costos"]["costo_base_m2"],
+        "costo_flete_km": config["costos"]["costo_flete_km"],
+        "sistema_constructivo": {
+            k: v["valor"] for k, v in config["sistema_constructivo"].items()
+        },
+        "modalidad_entrega": {
+            k: v["valor"] for k, v in config["modalidad_entrega"].items()
+        },
+    }
 
 
 def calcular_presupuesto(m2: float, sistema: str, entrega: str, distancia: float,
                           multiplicadores: dict = None) -> dict:
-    """
-    Calcula el desglose de un presupuesto (RF02).
-
-    Parámetros:
-        m2: superficie a construir (debe ser > 0)
-        sistema: clave de sistema constructivo (ej. "E.E", "W.F", "S.F")
-        entrega: clave de modalidad de entrega (ej. "OBRA GRIS", "LLAVE EN MANO")
-        distancia: distancia logística en km (debe ser >= 0)
-        multiplicadores: tabla ya cargada (opcional, para inyectar en tests).
-            Si no se pasa, se carga desde data/multiplicadores.json.
-
-    Devuelve un dict con: precio_m2_aplicado, costo_construccion,
-    recargo_logistica, total.
-
-    Lanza ValueError si algún input es inválido (RNF03: cálculo
-    reproducible y sin intervención manual ante datos incorrectos).
-    """
+    """Calcula el desglose de un presupuesto (RF02)."""
     if multiplicadores is None:
         multiplicadores = cargar_multiplicadores()
 
@@ -53,7 +93,6 @@ def calcular_presupuesto(m2: float, sistema: str, entrega: str, distancia: float
 
     costo_base_m2 = multiplicadores["costo_base_m2"]
     costo_flete_km = multiplicadores["costo_flete_km"]
-
     mult_sistema = multiplicadores["sistema_constructivo"][sistema]
     mult_entrega = multiplicadores["modalidad_entrega"][entrega]
 
