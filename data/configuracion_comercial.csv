@@ -1,0 +1,25 @@
+categoria,codigo,nombre,valor,valor_extra,activo,descripcion
+costo,costo_base_m2,Costo base por m²,280000,,1,Precio base de construcción por metro cuadrado
+costo,costo_flete_km,Costo de flete por km,1500,,1,Costo logístico por kilómetro
+sistema_constructivo,E.E,Económico,1.0,,1,Multiplicador del sistema constructivo
+sistema_constructivo,W.F,Wood Frame,1.15,,1,Multiplicador del sistema constructivo
+sistema_constructivo,S.F,Steel Frame,1.25,,1,Multiplicador del sistema constructivo
+modalidad_entrega,OBRA GRIS,Obra Gris,1.0,,1,Multiplicador por modalidad de entrega
+modalidad_entrega,LLAVE EN MANO,Llave en Mano,1.40,,1,Multiplicador por modalidad de entrega
+ubicacion,CORDOBA_CAPITAL,CÓRDOBA CAPITAL,,15,1,Ubicación comercial y distancia logística por defecto
+ubicacion,LA_PLATA,LA PLATA,,700,1,Ubicación comercial y distancia logística por defecto
+ubicacion,SANTIAGO_DEL_ESTERO,SANTIAGO DEL ESTERO,,580,1,Ubicación comercial y distancia logística por defecto
+ubicacion,ALTA_GRACIA,ALTA GRACIA,,40,1,Ubicación comercial y distancia logística por defecto
+ubicacion,CARLOS_PAZ,CARLOS PAZ,,40,1,Ubicación comercial y distancia logística por defecto
+ubicacion,MENDIOLAZA,MENDIOLAZA,,25,1,Ubicación comercial y distancia logística por defecto
+ubicacion,BUENOS_AIRES,BUENOS AIRES,,700,1,Ubicación comercial y distancia logística por defecto
+forma_pago,CONTADO,CONTADO,,,1,Forma de pago comercial
+forma_pago,PLAN_36_60,PLAN 36-60,,,1,Forma de pago comercial
+forma_pago,FINANCIACION_PROPIA,FINANCIACIÓN PROPIA,,,1,Forma de pago comercial
+forma_pago,NO_SABE,NO SABE,,,1,Forma de pago comercial
+tipologia,AMERICANA,AMERICANA,,,1,Tipología arquitectónica
+tipologia,MINIMALISTA,MINIMALISTA,,,1,Tipología arquitectónica
+tipologia,CABAÑA,CABAÑA,,,1,Tipología arquitectónica
+revestimiento,LADRILLO,LADRILLO,,,1,Revestimiento exterior
+revestimiento,PIEDRA_NATURAL,PIEDRA NATURAL,,,1,Revestimiento exterior
+revestimiento,MADERA,MADERA,,,1,Revestimiento exterior

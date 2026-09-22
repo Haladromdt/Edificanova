@@ -45,7 +45,7 @@ Se abre en `http://localhost:8501`.
 Desde la raíz del proyecto (no desde `tests/`):
 
 ```bash
-pytest tests/ -v
+python -m pytest tests/ -v
 ```
 
 ## Documentación del proyecto
@@ -70,3 +70,22 @@ pytest tests/ -v
 - ✅ Exportación a PDF
 - ⏳ Persistencia del histórico de cotizaciones (v0.3.0)
 - ⏳ Deploy público (v0.3.0)
+
+## Configuración comercial y de costos
+
+La información editable del cotizador se centraliza en `data/configuracion_comercial.csv`.
+
+Desde este archivo se pueden modificar sin tocar la lógica de Python:
+
+- costos base por m²;
+- costo de flete por km;
+- multiplicadores de sistema constructivo;
+- multiplicadores de modalidad de entrega;
+- ubicaciones y distancias logísticas iniciales;
+- formas de pago;
+- tipologías;
+- revestimientos.
+
+Las filas con `activo=0` quedan fuera de las opciones visibles del sistema. Para aplicar un cambio comercial basta con editar el CSV y volver a ejecutar la aplicación; no es necesario modificar `app.py`.
+
+`data/multiplicadores.json` queda únicamente como archivo legado de versiones anteriores. La fuente editable vigente es el CSV.
