@@ -2,6 +2,7 @@ import streamlit as st
 from core.motor_calculo import calcular_presupuesto, cargar_configuracion
 from core.historico import guardar_cotizacion, leer_historico
 from core.pdf_generator import generar_pdf
+from core.modelo_predictivo import predecir_probabilidad
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(page_title="Cotizador EdificaNova", page_icon="🏗️", layout="wide")
@@ -72,6 +73,35 @@ if st.button("Generar Cotización Formal", type="primary", use_container_width=T
             col_a.metric(label="Valor Construcción", value=f"${costo_construccion:,.0f}")
             col_b.metric(label="Logística y Fletes", value=f"${recargo_logistica:,.0f}")
             col_c.metric(label="VALOR TOTAL", value=f"${presupuesto_total:,.0f}")
+
+            # Predicción de probabilidad de cierre
+            try:
+                pred = predecir_probabilidad(
+                    m2=m2,
+                    sistema_constructivo=sistema,
+                    tipo_entrega=entrega,
+                    distancia_km=distancia,
+                    tipologia=tipologia,
+                    revestimiento=revestimiento,
+                    forma_pago=pago,
+                    precio_cotizado=presupuesto_total,
+                )
+                st.markdown("---")
+                st.subheader("🤖 Probabilidad de Cierre")
+                col_pred, col_desc = st.columns([1, 2])
+                with col_pred:
+                    st.metric(
+                        label=f"Chances de venta {pred['etiqueta']}",
+                        value=pred["porcentaje"],
+                    )
+                with col_desc:
+                    st.caption(
+                        "Estimación basada en el historial comercial de la constructora. "
+                        "No reemplaza el juicio del asesor."
+                    )
+                    st.progress(pred["probabilidad_vendido"])
+            except FileNotFoundError:
+                pass  # El modelo aún no fue entrenado, se omite silenciosamente
 
             with st.expander("ℹ️ Transparencia del Cálculo (Explicación para el cliente)"):
                 st.write(f"**Precio por m² aplicado:** ${resultado['precio_m2_aplicado']:,.0f}")

@@ -4,10 +4,20 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/). E
 
 ## [Unreleased]
 
-### Pendiente para v0.5.0
-- Modelo predictivo de probabilidad de cierre (dataset constructora, 4000 filas).
-- Integración de predicción en la UI de cotización.
+### Pendiente para v0.6.0
 - Despliegue en Streamlit Community Cloud.
+
+## [v0.5.0] — Modelo predictivo de cierre (Semana 11-12)
+
+### Agregado
+- Módulo `core/modelo_predictivo.py` con `entrenar_modelo()` y `predecir_probabilidad()`.
+- Modelo Random Forest entrenado sobre 4000 registros históricos (`data/dataset_constructora_final.csv`).
+- Modelo serializado en `data/modelo_cierre.joblib` con scikit-learn + joblib.
+- Sección "🤖 Probabilidad de Cierre" en la UI: muestra porcentaje y etiqueta (🟢/🟡/🔴) por cotización.
+- Suite de tests `tests/test_modelo_predictivo.py` con 8 casos (TC-M01 a TC-M08).
+
+### Cambiado
+- `app.py` importa y llama a `predecir_probabilidad()` tras cada cotización exitosa.
 
 ## [v0.4.0] — Módulo PDF aislado (Semana 10)
 
