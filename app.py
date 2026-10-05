@@ -1,9 +1,7 @@
 import streamlit as st
-from fpdf import FPDF
-import datetime
-
 from core.motor_calculo import calcular_presupuesto, cargar_configuracion
 from core.historico import guardar_cotizacion, leer_historico
+from core.pdf_generator import generar_pdf
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(page_title="Cotizador EdificaNova", page_icon="🏗️", layout="wide")
@@ -18,57 +16,6 @@ except (OSError, ValueError) as e:
 def opciones(categoria):
     return {k: v.get("nombre", k) for k, v in CONFIG[categoria].items()}
 
-
-
-def generar_pdf(cliente, m2, tipologia, sistema, entrega, revestimiento, pago,
-                 costo_const, distancia, recargo_flete, total):
-    """Genera un archivo PDF profesional con el desglose del presupuesto"""
-    pdf = FPDF()
-    pdf.add_page()
-
-    # Encabezado
-    pdf.set_font("Arial", 'B', 18)
-    pdf.set_text_color(27, 77, 62)  # Verde oscuro corporativo
-    pdf.cell(200, 10, txt="PRESUPUESTO OFICIAL - EDIFICANOVA", ln=True, align='C')
-    pdf.ln(5)
-
-    # Datos del Cliente y Fecha
-    pdf.set_font("Arial", size=11)
-    pdf.set_text_color(0, 0, 0)
-    pdf.cell(200, 8, txt=f"Fecha de Emisión: {datetime.date.today().strftime('%d/%m/%Y')}", ln=True)
-    pdf.cell(200, 8, txt=f"Cliente: {cliente.upper()}", ln=True)
-    pdf.cell(200, 8, txt=f"Modalidad de Pago Consultada: {pago}", ln=True)
-    pdf.ln(5)
-
-    # Especificaciones Técnicas
-    pdf.set_font("Arial", 'B', 14)
-    pdf.cell(200, 10, txt="Especificaciones Técnicas del Proyecto", ln=True)
-    pdf.set_font("Arial", size=12)
-    pdf.cell(200, 8, txt=f"- Superficie a construir: {m2} m2", ln=True)
-    pdf.cell(200, 8, txt=f"- Tipología Arquitectónica: {tipologia}", ln=True)
-    pdf.cell(200, 8, txt=f"- Sistema Constructivo: {sistema}", ln=True)
-    pdf.cell(200, 8, txt=f"- Tipo de Entrega: {entrega}", ln=True)
-    pdf.cell(200, 8, txt=f"- Revestimiento Exterior: {revestimiento}", ln=True)
-    pdf.ln(8)
-
-    # Desglose Económico
-    pdf.set_font("Arial", 'B', 14)
-    pdf.cell(200, 10, txt="Desglose de Inversión", ln=True)
-    pdf.set_font("Arial", size=12)
-    pdf.cell(150, 10, txt="1. Costo de Construcción (Materiales + Mano de Obra):")
-    pdf.cell(40, 10, txt=f"${costo_const:,.2f}", align='R', ln=True)
-
-    pdf.cell(150, 10, txt=f"2. Costo Logístico (Flete por {distancia} km):")
-    pdf.cell(40, 10, txt=f"${recargo_flete:,.2f}", align='R', ln=True)
-    pdf.ln(5)
-
-    # Total Final
-    pdf.set_font("Arial", 'B', 16)
-    pdf.set_text_color(200, 50, 50)  # Rojo para resaltar el total
-    pdf.cell(150, 12, txt="TOTAL PRESUPUESTADO:")
-    pdf.cell(40, 12, txt=f"${total:,.2f}", align='R', ln=True)
-
-    return pdf.output(dest="S").encode("latin-1")
 
 
 # --- INTERFAZ GRÁFICA ---
