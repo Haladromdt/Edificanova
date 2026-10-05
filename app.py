@@ -3,6 +3,7 @@ from fpdf import FPDF
 import datetime
 
 from core.motor_calculo import calcular_presupuesto, cargar_configuracion
+from core.historico import guardar_cotizacion, leer_historico
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(page_title="Cotizador EdificaNova", page_icon="🏗️", layout="wide")
@@ -129,6 +130,22 @@ if st.button("Generar Cotización Formal", type="primary", use_container_width=T
                 st.write(f"**Precio por m² aplicado:** ${resultado['precio_m2_aplicado']:,.0f}")
                 st.write(f"**Flete Logístico:** {distancia} km a razón del costo por km configurado.")
 
+            # Persistencia del histórico
+            guardar_cotizacion({
+                "cliente": cliente,
+                "ubicacion": ubicacion,
+                "distancia_km": distancia,
+                "m2": m2,
+                "tipologia": tipologia,
+                "sistema_constructivo": sistema,
+                "modalidad_entrega": entrega,
+                "revestimiento": revestimiento,
+                "forma_pago": pago,
+                "costo_construccion": costo_construccion,
+                "recargo_logistica": recargo_logistica,
+                "total": presupuesto_total,
+            })
+
             st.markdown("---")
             st.subheader("📄 Documentación Comercial")
 
@@ -143,3 +160,20 @@ if st.button("Generar Cotización Formal", type="primary", use_container_width=T
                 file_name=f"Presupuesto_EdificaNova_{cliente.replace(' ', '_')}.pdf",
                 mime="application/pdf"
             )
+
+# --- HISTÓRICO DE COTIZACIONES ---
+st.markdown("---")
+st.subheader("📋 Histórico de Cotizaciones")
+
+historial = leer_historico(ultimas=10)
+if historial:
+    import pandas as pd
+    df = pd.DataFrame(historial)
+    columnas_display = ["fecha", "cliente", "m2", "sistema_constructivo",
+                        "modalidad_entrega", "costo_construccion", "recargo_logistica", "total"]
+    df_display = df[columnas_display].copy()
+    for col in ["costo_construccion", "recargo_logistica", "total"]:
+        df_display[col] = df_display[col].astype(float).map("${:,.0f}".format)
+    st.dataframe(df_display, use_container_width=True, hide_index=True)
+else:
+    st.info("Aún no hay cotizaciones registradas. Generá la primera usando el formulario.")

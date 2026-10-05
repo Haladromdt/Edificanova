@@ -4,10 +4,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/). E
 
 ## [Unreleased]
 
-### Pendiente para v0.3.0
-- Persistencia del histórico de cotizaciones.
+### Pendiente para v0.4.0
 - Extracción de `generar_pdf()` a módulo aislado (`core/pdf_generator.py`).
 - Despliegue en Streamlit Community Cloud.
+
+## [v0.3.0] — Persistencia del histórico (Semana 8-9)
+
+### Agregado
+- Módulo `core/historico.py` con las funciones `guardar_cotizacion()` y `leer_historico()`.
+- Persistencia automática de cada cotización generada en `data/historico.csv`.
+- Sección "📋 Histórico de Cotizaciones" en la interfaz: tabla con las últimas 10 cotizaciones.
+- Suite de tests `tests/test_historico.py` con 8 casos (TC-H01 a TC-H08): creación de archivo, encabezado, acumulación de filas, integridad de datos, histórico vacío, filtro `ultimas`, validación de campos obligatorios y fecha automática.
+
+### Cambiado
+- `app.py` llama a `guardar_cotizacion()` tras cada presupuesto calculado exitosamente.
+- `[Unreleased]` actualizado: se mueven las tareas completadas a esta versión.
 
 ## [v0.2.0] — Motor de cálculo (Semana 5-7)
 
